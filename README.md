@@ -35,15 +35,25 @@ BookShop is a full-stack web application built with **Spring Boot (Java)** for t
 
 ## 🗂️ Project Structure
 bookshop/
+
 ├── src/
+
 │ ├── main/
+
 │ │ ├── java/com/bookshop/...
+
 │ │ └── resources/
+
 │ │ ├── static/
+
 │ │ ├── templates/
+
 │ │ └── application.properties
+
 │ └── test/
+
 ├── pom.xml
+
 └── README.md
 
 
@@ -95,5 +105,6 @@ This project is open-source and free to use under the MIT License.
 ## Author
 Shreya Bhelekar
 gmail : shreyabhelekar20@gmail.com
+
 LinkedIn : www.linkedin.com/in/shreya-bhelekar-ab315a268
 
