@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Login</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Navbar placeholder -->
+  <div id="navbar-placeholder"></div>
+
+  <div class="container mt-5">
+    <h3>Login</h3>
+    <form id="loginForm">
+      <input class="form-control mb-3" type="email" name="email" placeholder="Email" required>
+      <input class="form-control mb-3" type="password" name="password" placeholder="Password" required>
+      <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+  </div>
+
+  <script>
+    // Inject navbar and apply role logic
+    fetch("navbar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("navbar-placeholder").innerHTML = html;
+
+        const userId = sessionStorage.getItem("userId");
+        const userRole = sessionStorage.getItem("userRole");
+
+        // Hide Admin link for non-admin users
+        if (userRole !== "ADMIN") {
+          const adminLink = document.querySelector("a[href='admin.html']");
+          if (adminLink) adminLink.parentElement.remove();
+        }
+
+        // Swap Login/Signup with Logout
+        if (userId) {
+          document.getElementById("loginLink")?.remove();
+          document.getElementById("signupLink")?.remove();
+
+          const logoutItem = document.createElement("li");
+          logoutItem.className = "nav-item";
+          logoutItem.innerHTML = `<a class="nav-link" href="#" onclick="logout()">Logout</a>`;
+          document.getElementById("navMenu")?.appendChild(logoutItem);
+        }
+      });
+
+    function logout() {
+      sessionStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    // Handle login
+    document.getElementById("loginForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const credentials = Object.fromEntries(new FormData(e.target).entries());
+
+      fetch("http://localhost:8081/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials)
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Invalid credentials");
+        return res.json();
+      })
+      .then(user => {
+        sessionStorage.setItem("userId", user.userId);
+        sessionStorage.setItem("userRole", user.role);
+        alert(`Welcome, ${user.email}`);
+        window.location.href = "index.html";
+      })
+      .catch(err => {
+        alert(err.message || "Login failed. Please try again.");
+      });
+    });
+  </script>
+</body>
+</html>

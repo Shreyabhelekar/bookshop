@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Admin Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Navbar Placeholder -->
+  <div id="navbar-placeholder"></div>
+
+  <div class="container">
+    <!-- Add Book Section -->
+    <div class="card mt-4 mb-4">
+      <div class="card-body">
+        <h5>Add New Book</h5>
+        <form id="bookForm">
+          <input name="bookName" placeholder="Book Name" class="form-control mb-2" required>
+          <input name="author" placeholder="Author" class="form-control mb-2" required>
+          <input name="price" type="number" step="0.01" placeholder="Price" class="form-control mb-2" required>
+          <input name="stock" type="number" placeholder="Stock Quantity" class="form-control mb-2" required>
+          <button type="submit" class="btn btn-success">Add Book</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Book Inventory -->
+    <h4>📚 Book Inventory</h4>
+    <ul id="bookList" class="list-group mb-5"></ul>
+
+    <!-- Registered Users -->
+    <h4>👥 Registered Users</h4>
+    <ul id="userList" class="list-group"></ul>
+  </div>
+
+  <script>
+    const userId = sessionStorage.getItem("userId");
+    const userRole = sessionStorage.getItem("userRole");
+    if (!userId || userRole !== "ADMIN") {
+      window.location.href = "index.html"; // Restrict admin access
+    }
+
+    fetch("navbar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("navbar-placeholder").innerHTML = html;
+
+        // Hide login/signup
+        document.getElementById("loginLink")?.remove();
+        document.getElementById("signupLink")?.remove();
+
+        // Add logout
+        const logoutItem = document.createElement("li");
+        logoutItem.className = "nav-item";
+        logoutItem.innerHTML = `<a class="nav-link" href="#" onclick="logout()">Logout</a>`;
+        document.getElementById("navMenu")?.appendChild(logoutItem);
+
+        // Hide Cart & Orders for admin
+        document.getElementById("cartLink")?.remove();
+        document.getElementById("ordersLink")?.remove();
+      });
+
+    function logout() {
+      sessionStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    // Add Book
+    document.getElementById("bookForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const book = Object.fromEntries(new FormData(e.target).entries());
+      fetch("http://localhost:8081/books/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(book)
+      })
+      .then(() => {
+        alert("Book added!");
+        location.reload();
+      })
+      .catch(() => alert("Failed to add book"));
+    });
+
+    // Load Books
+    fetch("http://localhost:8081/books")
+      .then(res => res.json())
+      .then(books => {
+        const list = document.getElementById("bookList");
+        if (books.length === 0) {
+          list.innerHTML = "<li class='list-group-item'>No books available.</li>";
+          return;
+        }
+
+        books.forEach(book => {
+          const alertClass = book.stock < 5 ? "bg-danger" : "bg-success";
+          const item = document.createElement("li");
+          item.className = "list-group-item d-flex justify-content-between align-items-center";
+          item.innerHTML = `
+            <div>
+              <strong>${book.bookName}</strong> by ${book.author} – ₹${book.price}
+              <span class="badge ${alertClass} ms-2">Stock: ${book.stock}</span>
+            </div>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteBook(${book.bookId})">Delete</button>
+          `;
+          list.appendChild(item);
+        });
+      })
+      .catch(() => alert("Failed to load books"));
+
+    function deleteBook(bookId) {
+      fetch(`http://localhost:8081/books/${bookId}`, { method: "DELETE" })
+        .then(res => res.text())
+        .then(msg => {
+          alert(msg);
+          location.reload();
+        })
+        .catch(() => alert("Something went wrong"));
+    }
+
+    // Load Users
+    fetch("http://localhost:8081/admin/users")
+      .then(res => res.json())
+      .then(users => {
+        const list = document.getElementById("userList");
+        if (users.length === 0) {
+          list.innerHTML = "<li class='list-group-item'>No registered users found.</li>";
+          return;
+        }
+
+        users.forEach(user => {
+          const item = document.createElement("li");
+          item.className = "list-group-item d-flex justify-content-between align-items-center";
+          item.innerHTML = `
+            ${user.email} (${user.role})
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.userId})">Delete</button>
+          `;
+          list.appendChild(item);
+        });
+      })
+      .catch(() => alert("Failed to load users"));
+
+    function deleteUser(userId) {
+      fetch(`http://localhost:8081/admin/users/${userId}`, { method: "DELETE" })
+        .then(() => location.reload())
+        .catch(() => alert("Failed to delete user"));
+    }
+  </script>
+</body>
+</html>
