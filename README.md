@@ -99,11 +99,12 @@ You can run it using:
 ## Open Frontend
 Navigate to /src/main/resources/static and open index.html in the browser.
 
-## License
+## 📝License
 This project is open-source and free to use under the MIT License.
 
-## Author
+## 👩‍💻Author
 Shreya Bhelekar
+
 gmail : shreyabhelekar20@gmail.com
 
 LinkedIn : www.linkedin.com/in/shreya-bhelekar-ab315a268
